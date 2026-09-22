@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="vi">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Lọc danh sách số điện thoại theo danh sách đen ngay trong trình duyệt.">
-  <title>Bộ lọc danh sách số</title>
+  <meta name="description" content="在浏览器中根据黑名单筛选电话号码。">
+  <title>电话号码筛选工具</title>
   <style>
     :root{--bg:#07111f;--panel:#0d1b2d;--panel2:#101f33;--line:#243750;--text:#f7fbff;--muted:#9db0c8;--cyan:#35d6d0;--green:#55dda1;--amber:#ffc96b;--red:#ff7185;--shadow:0 22px 60px rgba(0,0,0,.35)}
     *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 12% 5%,#12304b 0,transparent 32%),linear-gradient(160deg,#06101d,#091625 68%,#07101d);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -19,36 +19,36 @@
 <body>
   <main class="shell">
     <header class="top">
-      <div><div class="eyebrow">Công cụ xử lý danh sách</div><h1>Bộ lọc số điện thoại</h1><p>Đối chiếu danh sách cần xử lý với danh sách đen và tạo đúng hai tệp để sử dụng.</p></div>
-      <div class="privacy">🔒 Xử lý ngay trên thiết bị</div>
+      <div><div class="eyebrow">号码名单处理工具</div><h1>电话号码筛选工具</h1><p>将待处理号码与黑名单进行比对，并生成两个可直接使用的文件。</p></div>
+      <div class="privacy">🔒 数据仅在本设备处理</div>
     </header>
     <section class="workspace">
-      <div class="stepbar"><div class="step active"><b>1</b><span>Tải danh sách</span></div><div class="step"><b>2</b><span>Đối chiếu</span></div><div class="step"><b>3</b><span>Tải kết quả</span></div></div>
+      <div class="stepbar"><div class="step active"><b>1</b><span>上传名单</span></div><div class="step"><b>2</b><span>比对筛选</span></div><div class="step"><b>3</b><span>下载结果</span></div></div>
       <div class="pad">
         <div class="uploads">
-          <article class="card"><h2>Danh sách cần xử lý</h2><p>Tải lên <b>source.txt</b>, mỗi dòng một số điện thoại.</p><label class="drop" id="sourceDrop"><input type="file" id="sourceFile" accept=".txt,text/plain"><span><span class="icon">↑</span><span class="pick">Chọn hoặc thả source.txt</span><span class="hint">Tệp TXT · mỗi dòng 1 số</span></span></label><div class="fileState" id="sourceState">Chưa chọn tệp</div></article>
-          <article class="card"><h2>Danh sách đen</h2><p>Tải lên <b>blacklist.txt</b> đang được cập nhật hằng ngày.</p><label class="drop" id="blackDrop"><input type="file" id="blackFile" accept=".txt,text/plain"><span><span class="icon">⊘</span><span class="pick">Chọn hoặc thả blacklist.txt</span><span class="hint">Tệp TXT · mỗi dòng 1 số</span></span></label><div class="fileState" id="blackState">Chưa chọn tệp</div></article>
+          <article class="card"><h2>待处理号码</h2><p>上传 <b>source.txt</b>，每行填写一个电话号码。</p><label class="drop" id="sourceDrop"><input type="file" id="sourceFile" accept=".txt,text/plain"><span><span class="icon">↑</span><span class="pick">选择或拖入 source.txt</span><span class="hint">TXT 文件 · 每行一个号码</span></span></label><div class="fileState" id="sourceState">尚未选择文件</div></article>
+          <article class="card"><h2>黑名单</h2><p>上传每日更新的 <b>blacklist.txt</b> 文件。</p><label class="drop" id="blackDrop"><input type="file" id="blackFile" accept=".txt,text/plain"><span><span class="icon">⊘</span><span class="pick">选择或拖入 blacklist.txt</span><span class="hint">TXT 文件 · 每行一个号码</span></span></label><div class="fileState" id="blackState">尚未选择文件</div></article>
         </div>
-        <div class="actionrow"><div class="note">Dòng trống và số trùng lặp sẽ tự động được loại bỏ.</div><button class="primary" id="process" disabled>Đối chiếu và tạo danh sách</button></div>
+        <div class="actionrow"><div class="note">系统会自动删除空行和重复号码。</div><button class="primary" id="process" disabled>比对并生成名单</button></div>
         <div class="error" id="error"></div>
         <div class="results" id="results">
-          <div class="stats"><div class="stat"><strong id="sourceCount">0</strong><span>Số trong source</span></div><div class="stat"><strong id="blackCount">0</strong><span>Số trong blacklist</span></div><div class="stat"><strong id="callCount">0</strong><span>Nhắn tin + gọi</span></div><div class="stat"><strong id="onlyCount">0</strong><span>Chỉ nhắn tin</span></div></div>
+          <div class="stats"><div class="stat"><strong id="sourceCount">0</strong><span>source 号码数</span></div><div class="stat"><strong id="blackCount">0</strong><span>黑名单号码数</span></div><div class="stat"><strong id="callCount">0</strong><span>短信 + 电话</span></div><div class="stat"><strong id="onlyCount">0</strong><span>仅短信</span></div></div>
           <div class="outputs">
-            <div class="output call"><div class="outputHead"><div><h3>Nhận tin nhắn và cuộc gọi</h3><p>Có trong source, không có trong blacklist.</p></div><div class="count" id="callBadge">0</div></div><button class="download" id="downloadCall">Tải message_and_call.txt</button></div>
-            <div class="output message"><div class="outputHead"><div><h3>Chỉ nhận tin nhắn</h3><p>Có trong source và cũng có trong blacklist.</p></div><div class="count" id="onlyBadge">0</div></div><button class="download" id="downloadOnly">Tải message_only.txt</button></div>
+            <div class="output call"><div class="outputHead"><div><h3>可接收短信和电话</h3><p>存在于 source，但不在黑名单中。</p></div><div class="count" id="callBadge">0</div></div><button class="download" id="downloadCall">下载 message_and_call.txt</button></div>
+            <div class="output message"><div class="outputHead"><div><h3>仅接收短信</h3><p>同时存在于 source 和黑名单中。</p></div><div class="count" id="onlyBadge">0</div></div><button class="download" id="downloadOnly">下载 message_only.txt</button></div>
           </div>
         </div>
       </div>
     </section>
-    <div class="footer">Tệp được xử lý cục bộ trong trình duyệt và không được tải lên máy chủ.</div>
+    <div class="footer">文件仅在浏览器本地处理，不会上传到服务器。</div>
   </main>
   <script>
     const $=s=>document.querySelector(s);let files={source:null,black:null},output={call:[],only:[]};
     function lines(text){const seen=new Set(),out=[];text.replace(/^\uFEFF/,'').split(/\r?\n/).forEach(x=>{const n=x.trim();if(n&&!seen.has(n)){seen.add(n);out.push(n)}});return out}
-    function bind(inputId,dropId,key,stateId){const input=$(inputId),drop=$(dropId),state=$(stateId);const set=f=>{if(!f)return;if(!f.name.toLowerCase().endsWith('.txt')){showError('Vui lòng chọn tệp định dạng .txt');return}files[key]=f;state.textContent=`✓ ${f.name} · ${(f.size/1024).toFixed(1)} KB`;$('#process').disabled=!(files.source&&files.black);hideError()};input.addEventListener('change',e=>set(e.target.files[0]));['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag')}));['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag')}));drop.addEventListener('drop',e=>set(e.dataTransfer.files[0]))}
+    function bind(inputId,dropId,key,stateId){const input=$(inputId),drop=$(dropId),state=$(stateId);const set=f=>{if(!f)return;if(!f.name.toLowerCase().endsWith('.txt')){showError('请选择 .txt 格式的文件');return}files[key]=f;state.textContent=`✓ ${f.name} · ${(f.size/1024).toFixed(1)} KB`;$('#process').disabled=!(files.source&&files.black);hideError()};input.addEventListener('change',e=>set(e.target.files[0]));['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag')}));['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag')}));drop.addEventListener('drop',e=>set(e.dataTransfer.files[0]))}
     function showError(msg){$('#error').textContent=msg;$('#error').style.display='block'}function hideError(){$('#error').style.display='none'}
     bind('#sourceFile','#sourceDrop','source','#sourceState');bind('#blackFile','#blackDrop','black','#blackState');
-    $('#process').addEventListener('click',async()=>{try{hideError();const [s,b]=await Promise.all([files.source.text(),files.black.text()]);const source=lines(s),black=lines(b),blackSet=new Set(black);output.call=source.filter(n=>!blackSet.has(n));output.only=source.filter(n=>blackSet.has(n));$('#sourceCount').textContent=source.length;$('#blackCount').textContent=black.length;$('#callCount').textContent=$('#callBadge').textContent=output.call.length;$('#onlyCount').textContent=$('#onlyBadge').textContent=output.only.length;$('#results').style.display='block';document.querySelectorAll('.step')[1].classList.add('active');document.querySelectorAll('.step')[2].classList.add('active');$('#results').scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){showError('Không thể đọc tệp. Vui lòng thử lại.')}});
+    $('#process').addEventListener('click',async()=>{try{hideError();const [s,b]=await Promise.all([files.source.text(),files.black.text()]);const source=lines(s),black=lines(b),blackSet=new Set(black);output.call=source.filter(n=>!blackSet.has(n));output.only=source.filter(n=>blackSet.has(n));$('#sourceCount').textContent=source.length;$('#blackCount').textContent=black.length;$('#callCount').textContent=$('#callBadge').textContent=output.call.length;$('#onlyCount').textContent=$('#onlyBadge').textContent=output.only.length;$('#results').style.display='block';document.querySelectorAll('.step')[1].classList.add('active');document.querySelectorAll('.step')[2].classList.add('active');$('#results').scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){showError('无法读取文件，请重试。')}});
     function download(name,data){const blob=new Blob([data.join('\n')+(data.length?'\n':'')],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
     $('#downloadCall').onclick=()=>download('message_and_call.txt',output.call);$('#downloadOnly').onclick=()=>download('message_only.txt',output.only);
   </script>
