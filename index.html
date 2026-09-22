@@ -314,12 +314,12 @@
       <div class="content">
         <div class="upload">
           <h2>上传待处理名单</h2>
-          <p>请选择 source.txt，每行填写一个电话号码。</p>
+          <p>请选择 source.txt，每行填写一个电话号码。号码必须以 55 开头且共 13 位。</p>
 
           <label class="dropzone" for="sourceFile">
             <div style="font-size:30px">↑</div>
             <strong>点击选择或拖放 source.txt</strong>
-            <small>仅支持 TXT 文件，每行一个号码</small>
+            <small>仅支持 TXT 文件；号码必须以 55 开头且共 13 位</small>
           </label>
 
           <input id="sourceFile" type="file" accept=".txt,text/plain">
@@ -328,7 +328,7 @@
 
         <div class="action">
           <div class="note">
-            空行和重复号码会被自动删除，用户无法查看或修改黑名单。
+            空行和重复号码会被自动删除；格式错误的号码会停止筛选并显示所在行。
           </div>
           <button id="filterButton" disabled>开始筛选并生成名单</button>
         </div>
@@ -389,18 +389,48 @@
     let smsNumbers = [];
 
     function normalizePhone(value) {
-      return String(value || "").replace(/[^\d+]/g, "").trim();
+      return String(value || "").replace(/\D/g, "").trim();
+    }
+
+    function isValidPhone(phone) {
+      return /^55\d{11}$/.test(phone);
     }
 
     function parseNumbers(text) {
-      return [
-        ...new Set(
-          text
-            .split(/\r?\n/)
-            .map(normalizePhone)
-            .filter(Boolean)
-        )
-      ];
+      const validNumbers = [];
+      const invalidNumbers = [];
+
+      text.split(/\r?\n/).forEach((line, index) => {
+        const phone = normalizePhone(line);
+
+        if (!phone) {
+          return;
+        }
+
+        if (!isValidPhone(phone)) {
+          let reason = "号码格式错误";
+
+          if (!phone.startsWith("55")) {
+            reason = "号码未以 55 开头";
+          } else if (phone.length !== 13) {
+            reason = `号码位数错误（当前 ${phone.length} 位，应为 13 位）`;
+          }
+
+          invalidNumbers.push({
+            line: index + 1,
+            phone,
+            reason
+          });
+          return;
+        }
+
+        validNumbers.push(phone);
+      });
+
+      return {
+        numbers: [...new Set(validNumbers)],
+        invalidNumbers
+      };
     }
 
     function setStatus(message, isError = false) {
@@ -456,7 +486,32 @@
 
       try {
         const text = await file.text();
-        const numbers = parseNumbers(text);
+        const {
+          numbers,
+          invalidNumbers
+        } = parseNumbers(text);
+
+        if (invalidNumbers.length > 0) {
+          const examples = invalidNumbers
+            .slice(0, 10)
+            .map(
+              (item) =>
+                `第 ${item.line} 行：${item.phone}（${item.reason}）`
+            )
+            .join("\n");
+
+          const remaining =
+            invalidNumbers.length > 10
+              ? `\n另外还有 ${invalidNumbers.length - 10} 个错误号码。`
+              : "";
+
+          throw new Error(
+            `发现 ${invalidNumbers.length} 个号码不完整或格式错误。\n` +
+            `每个号码必须以 55 开头，并且总共为 13 位数字。\n\n` +
+            examples +
+            remaining
+          );
+        }
 
         if (!numbers.length) {
           throw new Error("文件中没有有效的电话号码。");
@@ -488,7 +543,11 @@
           const data = await response.json();
 
           if (!response.ok || !data.success) {
-            throw new Error(data.message || "服务器筛选失败。");
+            throw new Error(
+              [data.message, data.error]
+                .filter(Boolean)
+                .join("：") || "服务器筛选失败。"
+            );
           }
 
           callNumbers.push(...(data.callable_numbers || []));
