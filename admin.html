@@ -199,7 +199,7 @@
       <strong>点击选择 blacklist.txt</strong>
 
       <div style="margin-top:8px;color:#91abc8">
-        TXT 文件，每行一个电话号码
+        TXT 文件，每行一个电话号码；号码必须以 55 开头且共 13 位
       </div>
     </label>
 
@@ -253,19 +253,40 @@
 
     function normalizePhone(value) {
       return String(value || "")
-        .replace(/[^\d+]/g, "")
+        .replace(/\D/g, "")
         .trim();
     }
 
+    function isValidPhone(phone) {
+      return /^55\d{11}$/.test(phone);
+    }
+
     function parseNumbers(text) {
-      return [
-        ...new Set(
-          text
-            .split(/\r?\n/)
-            .map(normalizePhone)
-            .filter(Boolean)
-        )
-      ];
+      const validNumbers = [];
+      const invalidNumbers = [];
+
+      text.split(/\r?\n/).forEach((line, index) => {
+        const phone = normalizePhone(line);
+
+        if (!phone) {
+          return;
+        }
+
+        if (!isValidPhone(phone)) {
+          invalidNumbers.push({
+            line: index + 1,
+            phone
+          });
+          return;
+        }
+
+        validNumbers.push(phone);
+      });
+
+      return {
+        numbers: [...new Set(validNumbers)],
+        invalidNumbers
+      };
     }
 
     function showStatus(message, error = false) {
@@ -303,7 +324,32 @@
 
       try {
         const text = await file.text();
-        const numbers = parseNumbers(text);
+        const {
+          numbers,
+          invalidNumbers
+        } = parseNumbers(text);
+
+        if (invalidNumbers.length > 0) {
+          const examples = invalidNumbers
+            .slice(0, 10)
+            .map(
+              (item) =>
+                `第 ${item.line} 行：${item.phone}`
+            )
+            .join("\n");
+
+          const remaining =
+            invalidNumbers.length > 10
+              ? `\n另外还有 ${invalidNumbers.length - 10} 个错误号码。`
+              : "";
+
+          throw new Error(
+            `发现 ${invalidNumbers.length} 个号码不完整或格式错误。\n` +
+            `每个号码必须以 55 开头，并且总共为 13 位数字。\n\n` +
+            examples +
+            remaining
+          );
+        }
 
         if (!numbers.length) {
           throw new Error("文件中没有有效的电话号码。");
@@ -354,7 +400,9 @@
             }
 
             throw new Error(
-              data.message || "服务器更新失败。"
+              [data.message, data.error]
+                .filter(Boolean)
+                .join("：") || "服务器更新失败。"
             );
           }
 
