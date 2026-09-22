@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>黑名单管理后台</title>
+
+  <style>
+    :root{
+      --bg:#07111f;
+      --panel:#0d1b2d;
+      --line:#263b56;
+      --text:#f5f9ff;
+      --muted:#91abc8;
+      --cyan:#35d6d0;
+      --green:#55dda1;
+      --red:#ff7185;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      padding:30px 15px;
+      color:var(--text);
+      font-family:Arial,"Microsoft YaHei",sans-serif;
+      background:
+        radial-gradient(circle at 15% 5%,#12304b,transparent 32%),
+        var(--bg);
+    }
+
+    .box{
+      width:min(760px,100%);
+      margin:auto;
+      padding:30px;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:rgba(13,27,45,.97);
+      box-shadow:0 25px 60px rgba(0,0,0,.35);
+    }
+
+    h1{margin:0 0 10px;font-size:36px}
+    .sub{color:var(--muted);line-height:1.7;margin-bottom:28px}
+
+    label{
+      display:block;
+      margin:20px 0 8px;
+      font-weight:800;
+    }
+
+    input,select,button{
+      width:100%;
+      padding:14px;
+      border-radius:11px;
+      font:inherit;
+    }
+
+    input,select{
+      color:white;
+      border:1px solid var(--line);
+      background:#081827;
+      outline:none;
+    }
+
+    input:focus,select:focus{border-color:var(--cyan)}
+
+    .upload{
+      display:block;
+      margin-top:10px;
+      padding:35px 20px;
+      text-align:center;
+      border:1px dashed #3d668d;
+      border-radius:15px;
+      background:#091a2b;
+      cursor:pointer;
+    }
+
+    .upload:hover{border-color:var(--cyan)}
+    #blacklistFile{display:none}
+
+    #fileName{
+      margin-top:12px;
+      color:var(--green);
+    }
+
+    button{
+      margin-top:24px;
+      border:0;
+      color:#061b20;
+      font-weight:900;
+      cursor:pointer;
+      background:linear-gradient(135deg,var(--cyan),var(--green));
+    }
+
+    button:disabled{opacity:.5;cursor:not-allowed}
+
+    #status{
+      display:none;
+      margin-top:20px;
+      padding:15px;
+      border-radius:12px;
+      background:#112b3e;
+      color:#cdefff;
+      white-space:pre-line;
+    }
+
+    #status.error{
+      color:#ffd1d8;
+      border:1px solid #784151;
+      background:#351b25;
+    }
+
+    .warning{
+      margin-top:25px;
+      padding:15px;
+      color:#ffd6dc;
+      border:1px solid #633747;
+      border-radius:12px;
+      background:#251722;
+      line-height:1.6;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="box">
+    <h1>🔐 黑名单管理后台</h1>
+
+    <div class="sub">
+      此页面仅供管理员使用。上传 TXT 文件后，可以向主黑名单添加号码，
+      或从黑名单中删除号码。
+    </div>
+
+    <label for="adminToken">管理员密码</label>
+    <input
+      id="adminToken"
+      type="password"
+      placeholder="请输入 ADMIN_TOKEN"
+      autocomplete="off"
+    >
+
+    <label for="operation">选择操作</label>
+    <select id="operation">
+      <option value="add">添加到黑名单</option>
+      <option value="remove">从黑名单删除</option>
+    </select>
+
+    <label>上传号码文件</label>
+    <label class="upload" for="blacklistFile">
+      <div style="font-size:32px">↑</div>
+      <strong>点击选择 blacklist.txt</strong>
+      <div style="margin-top:8px;color:#91abc8">
+        TXT 文件，每行一个电话号码
+      </div>
+    </label>
+
+    <input id="blacklistFile" type="file" accept=".txt,text/plain">
+    <div id="fileName">尚未选择文件</div>
+
+    <button id="submitButton">确认更新黑名单</button>
+
+    <div id="status"></div>
+
+    <div class="warning">
+      ⚠ 请勿向任何人提供管理员密码。系统不会把密码保存到网页或浏览器中。
+    </div>
+  </main>
+
+  <script>
+    const API_URL =
+      "https://phone-number-filter-api.xiaohuangsn888.workers.dev";
+
+    const tokenInput = document.getElementById("adminToken");
+    const operation = document.getElementById("operation");
+    const fileInput = document.getElementById("blacklistFile");
+    const fileName = document.getElementById("fileName");
+    const submitButton = document.getElementById("submitButton");
+    const statusBox = document.getElementById("status");
+
+    function normalizePhone(value) {
+      return String(value || "").replace(/[^\d+]/g, "").trim();
+    }
+
+    function parseNumbers(text) {
+      return [
+        ...new Set(
+          text
+            .split(/\r?\n/)
+            .map(normalizePhone)
+            .filter(Boolean)
+        )
+      ];
+    }
+
+    function showStatus(message, error = false) {
+      statusBox.style.display = "block";
+      statusBox.textContent = message;
+      statusBox.className = error ? "error" : "";
+    }
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      fileName.textContent = file
+        ? "已选择：" + file.name
+        : "尚未选择文件";
+    });
+
+    submitButton.addEventListener("click", async () => {
+      const token = tokenInput.value.trim();
+      const file = fileInput.files[0];
+
+      if (!token) {
+        showStatus("请输入管理员密码。", true);
+        return;
+      }
+
+      if (!file) {
+        showStatus("请选择号码 TXT 文件。", true);
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = "正在更新，请稍候...";
+
+      try {
+        const text = await file.text();
+        const numbers = parseNumbers(text);
+
+        if (!numbers.length) {
+          throw new Error("文件中没有有效的电话号码。");
+        }
+
+        const path =
+          operation.value === "add"
+            ? "/admin/add"
+            : "/admin/remove";
+
+        const batchSize = 80;
+        let completed = 0;
+
+        for (let i = 0; i < numbers.length; i += batchSize) {
+          const batch = numbers.slice(i, i + batchSize);
+
+          showStatus(
+            `正在处理 ${Math.min(i + batch.length, numbers.length)} / ${numbers.length} 个号码...`
+          );
+
+          const response = await fetch(API_URL + path, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify({
+              numbers: batch
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            if (response.status === 401) {
+              throw new Error("管理员密码不正确。");
+            }
+
+            throw new Error(data.message || "服务器更新失败。");
+          }
+
+          completed += batch.length;
+        }
+
+        const actionText =
+          operation.value === "add"
+            ? "已成功添加到黑名单"
+            : "已成功从黑名单删除";
+
+        showStatus(
+          `操作成功！\n${actionText}：${completed} 个号码。`
+        );
+
+        fileInput.value = "";
+        fileName.textContent = "尚未选择文件";
+      } catch (error) {
+        showStatus("操作失败：" + error.message, true);
+      } finally {
+        tokenInput.value = "";
+        submitButton.disabled = false;
+        submitButton.textContent = "确认更新黑名单";
+      }
+    });
+  </script>
+</body>
+</html>
