@@ -6,119 +6,162 @@
   <title>黑名单管理后台</title>
 
   <style>
-    :root{
-      --bg:#07111f;
-      --panel:#0d1b2d;
-      --line:#263b56;
-      --text:#f5f9ff;
-      --muted:#91abc8;
-      --cyan:#35d6d0;
-      --green:#55dda1;
-      --red:#ff7185;
+    :root {
+      --bg: #07111f;
+      --panel: #0d1b2d;
+      --line: #263b56;
+      --text: #f5f9ff;
+      --muted: #91abc8;
+      --cyan: #35d6d0;
+      --green: #55dda1;
+      --amber: #ffc96b;
+      --orange: #ff9f43;
     }
 
-    *{box-sizing:border-box}
+    * {
+      box-sizing: border-box;
+    }
 
-    body{
-      margin:0;
-      min-height:100vh;
-      padding:30px 15px;
-      color:var(--text);
-      font-family:Arial,"Microsoft YaHei",sans-serif;
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 30px 15px;
+      color: var(--text);
+      font-family: Arial, "Microsoft YaHei", sans-serif;
       background:
-        radial-gradient(circle at 15% 5%,#12304b,transparent 32%),
+        radial-gradient(circle at 15% 5%, #12304b, transparent 32%),
         var(--bg);
     }
 
-    .box{
-      width:min(760px,100%);
-      margin:auto;
-      padding:30px;
-      border:1px solid var(--line);
-      border-radius:22px;
-      background:rgba(13,27,45,.97);
-      box-shadow:0 25px 60px rgba(0,0,0,.35);
+    .box {
+      width: min(760px, 100%);
+      margin: auto;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(13, 27, 45, 0.97);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
     }
 
-    h1{margin:0 0 10px;font-size:36px}
-    .sub{color:var(--muted);line-height:1.7;margin-bottom:28px}
-
-    label{
-      display:block;
-      margin:20px 0 8px;
-      font-weight:800;
+    h1 {
+      margin: 0 0 10px;
+      font-size: 36px;
     }
 
-    input,select,button{
-      width:100%;
-      padding:14px;
-      border-radius:11px;
-      font:inherit;
+    .sub {
+      margin-bottom: 28px;
+      color: var(--muted);
+      line-height: 1.7;
     }
 
-    input,select{
-      color:white;
-      border:1px solid var(--line);
-      background:#081827;
-      outline:none;
+    label {
+      display: block;
+      margin: 20px 0 8px;
+      font-weight: 800;
     }
 
-    input:focus,select:focus{border-color:var(--cyan)}
-
-    .upload{
-      display:block;
-      margin-top:10px;
-      padding:35px 20px;
-      text-align:center;
-      border:1px dashed #3d668d;
-      border-radius:15px;
-      background:#091a2b;
-      cursor:pointer;
+    input,
+    select,
+    button {
+      width: 100%;
+      padding: 14px;
+      border-radius: 11px;
+      font: inherit;
     }
 
-    .upload:hover{border-color:var(--cyan)}
-    #blacklistFile{display:none}
-
-    #fileName{
-      margin-top:12px;
-      color:var(--green);
+    input,
+    select {
+      color: white;
+      border: 1px solid var(--line);
+      background: #081827;
+      outline: none;
     }
 
-    button{
-      margin-top:24px;
-      border:0;
-      color:#061b20;
-      font-weight:900;
-      cursor:pointer;
-      background:linear-gradient(135deg,var(--cyan),var(--green));
+    input:focus,
+    select:focus {
+      border-color: var(--cyan);
     }
 
-    button:disabled{opacity:.5;cursor:not-allowed}
-
-    #status{
-      display:none;
-      margin-top:20px;
-      padding:15px;
-      border-radius:12px;
-      background:#112b3e;
-      color:#cdefff;
-      white-space:pre-line;
+    .upload {
+      display: block;
+      margin-top: 10px;
+      padding: 35px 20px;
+      text-align: center;
+      border: 1px dashed #3d668d;
+      border-radius: 15px;
+      background: #091a2b;
+      cursor: pointer;
     }
 
-    #status.error{
-      color:#ffd1d8;
-      border:1px solid #784151;
-      background:#351b25;
+    .upload:hover {
+      border-color: var(--cyan);
     }
 
-    .warning{
-      margin-top:25px;
-      padding:15px;
-      color:#ffd6dc;
-      border:1px solid #633747;
-      border-radius:12px;
-      background:#251722;
-      line-height:1.6;
+    #blacklistFile {
+      display: none;
+    }
+
+    #fileName {
+      margin-top: 12px;
+      color: var(--green);
+    }
+
+    button {
+      margin-top: 18px;
+      border: 0;
+      color: #061b20;
+      font-weight: 900;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #downloadButton {
+      background: linear-gradient(
+        135deg,
+        var(--amber),
+        var(--orange)
+      );
+    }
+
+    #status {
+      display: none;
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 12px;
+      background: #112b3e;
+      color: #cdefff;
+      white-space: pre-line;
+    }
+
+    #status.error {
+      color: #ffd1d8;
+      border: 1px solid #784151;
+      background: #351b25;
+    }
+
+    .warning {
+      margin-top: 25px;
+      padding: 15px;
+      color: #ffd6dc;
+      border: 1px solid #633747;
+      border-radius: 12px;
+      background: #251722;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 600px) {
+      .box {
+        padding: 22px;
+      }
+
+      h1 {
+        font-size: 29px;
+      }
     }
   </style>
 </head>
@@ -128,11 +171,12 @@
     <h1>🔐 黑名单管理后台</h1>
 
     <div class="sub">
-      此页面仅供管理员使用。上传 TXT 文件后，可以向主黑名单添加号码，
-      或从黑名单中删除号码。
+      此页面仅供管理员使用。您可以添加号码、删除号码，
+      或下载当前完整的黑名单。
     </div>
 
     <label for="adminToken">管理员密码</label>
+
     <input
       id="adminToken"
       type="password"
@@ -141,24 +185,39 @@
     >
 
     <label for="operation">选择操作</label>
+
     <select id="operation">
       <option value="add">添加到黑名单</option>
       <option value="remove">从黑名单删除</option>
     </select>
 
     <label>上传号码文件</label>
+
     <label class="upload" for="blacklistFile">
       <div style="font-size:32px">↑</div>
+
       <strong>点击选择 blacklist.txt</strong>
+
       <div style="margin-top:8px;color:#91abc8">
         TXT 文件，每行一个电话号码
       </div>
     </label>
 
-    <input id="blacklistFile" type="file" accept=".txt,text/plain">
+    <input
+      id="blacklistFile"
+      type="file"
+      accept=".txt,text/plain"
+    >
+
     <div id="fileName">尚未选择文件</div>
 
-    <button id="submitButton">确认更新黑名单</button>
+    <button id="submitButton" type="button">
+      确认更新黑名单
+    </button>
+
+    <button id="downloadButton" type="button">
+      下载全部黑名单
+    </button>
 
     <div id="status"></div>
 
@@ -171,15 +230,31 @@
     const API_URL =
       "https://phone-number-filter-api.xiaohuangsn888.workers.dev";
 
-    const tokenInput = document.getElementById("adminToken");
-    const operation = document.getElementById("operation");
-    const fileInput = document.getElementById("blacklistFile");
-    const fileName = document.getElementById("fileName");
-    const submitButton = document.getElementById("submitButton");
-    const statusBox = document.getElementById("status");
+    const tokenInput =
+      document.getElementById("adminToken");
+
+    const operation =
+      document.getElementById("operation");
+
+    const fileInput =
+      document.getElementById("blacklistFile");
+
+    const fileName =
+      document.getElementById("fileName");
+
+    const submitButton =
+      document.getElementById("submitButton");
+
+    const downloadButton =
+      document.getElementById("downloadButton");
+
+    const statusBox =
+      document.getElementById("status");
 
     function normalizePhone(value) {
-      return String(value || "").replace(/[^\d+]/g, "").trim();
+      return String(value || "")
+        .replace(/[^\d+]/g, "")
+        .trim();
     }
 
     function parseNumbers(text) {
@@ -201,11 +276,13 @@
 
     fileInput.addEventListener("change", () => {
       const file = fileInput.files[0];
+
       fileName.textContent = file
         ? "已选择：" + file.name
         : "尚未选择文件";
     });
 
+    // Thêm hoặc xóa số trong danh sách đen
     submitButton.addEventListener("click", async () => {
       const token = tokenInput.value.trim();
       const file = fileInput.files[0];
@@ -221,6 +298,7 @@
       }
 
       submitButton.disabled = true;
+      downloadButton.disabled = true;
       submitButton.textContent = "正在更新，请稍候...";
 
       try {
@@ -239,23 +317,34 @@
         const batchSize = 80;
         let completed = 0;
 
-        for (let i = 0; i < numbers.length; i += batchSize) {
-          const batch = numbers.slice(i, i + batchSize);
+        for (
+          let i = 0;
+          i < numbers.length;
+          i += batchSize
+        ) {
+          const batch =
+            numbers.slice(i, i + batchSize);
 
           showStatus(
-            `正在处理 ${Math.min(i + batch.length, numbers.length)} / ${numbers.length} 个号码...`
+            `正在处理 ${Math.min(
+              i + batch.length,
+              numbers.length
+            )} / ${numbers.length} 个号码...`
           );
 
-          const response = await fetch(API_URL + path, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify({
-              numbers: batch
-            })
-          });
+          const response = await fetch(
+            API_URL + path,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+              },
+              body: JSON.stringify({
+                numbers: batch
+              })
+            }
+          );
 
           const data = await response.json();
 
@@ -264,7 +353,9 @@
               throw new Error("管理员密码不正确。");
             }
 
-            throw new Error(data.message || "服务器更新失败。");
+            throw new Error(
+              data.message || "服务器更新失败。"
+            );
           }
 
           completed += batch.length;
@@ -282,11 +373,94 @@
         fileInput.value = "";
         fileName.textContent = "尚未选择文件";
       } catch (error) {
-        showStatus("操作失败：" + error.message, true);
+        showStatus(
+          "操作失败：" + error.message,
+          true
+        );
       } finally {
         tokenInput.value = "";
         submitButton.disabled = false;
+        downloadButton.disabled = false;
         submitButton.textContent = "确认更新黑名单";
+      }
+    });
+
+    // Tải toàn bộ danh sách đen
+    downloadButton.addEventListener("click", async () => {
+      const token = tokenInput.value.trim();
+
+      if (!token) {
+        showStatus("请输入管理员密码。", true);
+        return;
+      }
+
+      submitButton.disabled = true;
+      downloadButton.disabled = true;
+      downloadButton.textContent =
+        "正在下载，请稍候...";
+
+      try {
+        const response = await fetch(
+          API_URL + "/admin/export",
+          {
+            method: "GET",
+            headers: {
+              "Authorization": "Bearer " + token
+            }
+          }
+        );
+
+        const content = await response.text();
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error("管理员密码不正确。");
+          }
+
+          throw new Error("无法下载黑名单。");
+        }
+
+        const blob = new Blob(
+          [content],
+          {
+            type: "text/plain;charset=utf-8"
+          }
+        );
+
+        const downloadUrl =
+          URL.createObjectURL(blob);
+
+        const link =
+          document.createElement("a");
+
+        link.href = downloadUrl;
+        link.download = "blacklist.txt";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        URL.revokeObjectURL(downloadUrl);
+
+        const total = content
+          .split(/\r?\n/)
+          .filter(Boolean)
+          .length;
+
+        showStatus(
+          `下载成功！\n黑名单共有 ${total} 个号码。`
+        );
+      } catch (error) {
+        showStatus(
+          "下载失败：" + error.message,
+          true
+        );
+      } finally {
+        tokenInput.value = "";
+        submitButton.disabled = false;
+        downloadButton.disabled = false;
+        downloadButton.textContent =
+          "下载全部黑名单";
       }
     });
   </script>
